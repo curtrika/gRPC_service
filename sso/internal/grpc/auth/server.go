@@ -1,7 +1,9 @@
 import (
 	// Сгенерированный код
+	"context"
 
-	ssov1 "github.com/curtrika/gRPC_service/tree/develop/protos/proto/sso"
+    "google.golang.org/grpc"
+	ssov1 "github.com/curtrika/protos/gen/go/sso"
 )
 
 type serverAPI struct {
