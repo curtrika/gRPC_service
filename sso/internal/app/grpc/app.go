@@ -1,6 +1,7 @@
 package grpcapp
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net"
@@ -10,6 +11,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	authgrpc "gRPC_service/sso/internal/grpc/auth"
 )
 
 type App struct {
@@ -30,7 +33,7 @@ func New(
 	}
 
 	recoveryOpts := []recovery.Option{
-		recovery.WthRecoveryHandler(func(p interface{}) (err error) {
+		recovery.WithRecoveryHandler(func(p interface{}) (err error) {
 			log.Error("Recovered from panic", slog.Any("panic", p))
 
 			return status.Errorf(codes.Internal, "internal error")
@@ -51,6 +54,12 @@ func New(
 		gRPCServer: gRPCServer,
 		port:       port,
 	}
+}
+
+func InterceptorLogger(l *slog.Logger) logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+		l.Log(ctx, slog.Level(lvl), msg, fields...)
+	})
 }
 
 // MustRun runs gRPC server and panics if any error occurs.
@@ -79,4 +88,15 @@ func (a *App) Run() error {
 	}
 
 	return nil
+}
+
+// Stop stops gRPC server.
+func (a *App) Stop() {
+	const op = "grpcapp.Stop"
+
+	a.log.With(slog.String("op", op)).
+		Info("stopping gRPC server", slog.Int("port", a.port))
+
+	// Используем встроенный в gRPCServer механизм graceful shutdown
+	a.gRPCServer.GracefulStop()
 }

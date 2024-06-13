@@ -48,7 +48,7 @@ func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	ed, err := res.lastInsertId()
+	id, err := res.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}

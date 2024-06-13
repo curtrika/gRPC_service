@@ -13,7 +13,7 @@ func NewToken(user models.User, app models.App, duration time.Duration) (string,
 	//TODO: написать тесты
 	token := jwt.New(jwt.SigningMethodHS256)
 
-	claims := token.Clams.(jwt.MapClaims)
+	claims := token.Claims.(jwt.MapClaims)
 	claims["uid"] = user.ID
 	claims["email"] = user.Email
 	claims["exp"] = time.Now().Add(duration).Unix()
@@ -21,7 +21,7 @@ func NewToken(user models.User, app models.App, duration time.Duration) (string,
 
 	// Подписываем токен, используя секретный ключ приложения
 	tokenString, err := token.SignedString([]byte(app.Secret))
-	if ee != nil {
+	if err != nil {
 		return "", err
 	}
 

@@ -3,11 +3,15 @@ package auth
 import (
 	// Сгенерированный код
 	"context"
+	"errors"
 
-	"google.golang.org/grpc/codes"
-    "google.golang.org/grpc/status"
-    "google.golang.org/grpc"
 	ssov1 "github.com/curtrika/proto/gen/go/sso"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"gRPC_service/sso/internal/services/auth"
+	"gRPC_service/sso/internal/storage"
 )
 
 type serverAPI struct {
@@ -18,13 +22,13 @@ type serverAPI struct {
 type Auth interface {
 	Login(
 		ctx context.Context,
-		email string, 
-		password string, 
+		email string,
+		password string,
 		appID int,
 	) (token string, err error)
 	RegisterNewUser(
 		ctx context.Context,
-		email string
+		email string,
 		password string,
 	) (userID int64, err error)
 }
@@ -33,7 +37,7 @@ func Register(gRPCServer *grpc.Server, auth Auth) {
 	ssov1.RegisterAuthServer(gRPCServer, &serverAPI{auth: auth})
 }
 
-func (s *serverAPI) Login (
+func (s *serverAPI) Login(
 	ctx context.Context,
 	in *ssov1.LoginRequest,
 ) (*ssov1.LoginResponse, error) {
@@ -61,7 +65,7 @@ func (s *serverAPI) Login (
 	return &ssov1.LoginResponse{Token: token}, nil
 }
 
-func (s *serverAPI) Register (
+func (s *serverAPI) Register(
 	ctx context.Context,
 	in *ssov1.RegisterRequest,
 ) (*ssov1.RegisterResponse, error) {
@@ -75,12 +79,12 @@ func (s *serverAPI) Register (
 
 	uid, err := s.auth.RegisterNewUser(ctx, in.GetEmail(), in.GetPassword())
 	if err != nil {
-		if errors.Is(err, storage.ErrUserExists){
+		if errors.Is(err, storage.ErrUserExists) {
 			return nil, status.Error(codes.AlreadyExists, "user already exists")
 		}
 
 		return nil, status.Error(codes.Internal, "failed to register user")
 	}
 
-	return &ssov1.RegisterResponse{UserID: uid}, nil
+	return &ssov1.RegisterResponse{UserId: uid}, nil
 }

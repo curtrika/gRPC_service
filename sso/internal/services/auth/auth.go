@@ -12,6 +12,7 @@ import (
 	"gRPC_service/sso/internal/domain/models"
 	"gRPC_service/sso/internal/lib/jwt"
 	"gRPC_service/sso/internal/lib/logger/sl"
+	"gRPC_service/sso/internal/storage"
 )
 
 type UserSaver interface {

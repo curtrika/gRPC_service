@@ -2,6 +2,9 @@ package main
 
 import (
 	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"gRPC_service/sso/internal/app"
 	"gRPC_service/sso/internal/config"
@@ -37,9 +40,9 @@ func main() {
 }
 
 func setupLogger(env string) *slog.Logger {
-	var log *slog.Logger 
+	var log *slog.Logger
 
-	swith env {
+	switch env {
 	case envLocal:
 		log = slog.New(
 			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
@@ -55,15 +58,4 @@ func setupLogger(env string) *slog.Logger {
 	}
 
 	return log
-}
-
-// Stop stops gRPC server.
-func (a *App) Stop() {
-	const op = "grpcapp.Stop"
-
-	a.log.With(slog.String("op", op)).
-		Info("stopping gRPC server", slog.Int("port", a.port))
-
-	// Используем встроенный в gRPCServer механизм graceful shutdown
-	a.gRPCserver.GracefulStop()
 }
